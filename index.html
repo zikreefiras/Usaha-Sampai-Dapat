@@ -467,7 +467,7 @@
 
     <section class="featured-game" aria-label="Main game">
       <div class="featured-art">
-        <img src="gameThumbnail/SINCA.png" alt="Main game thumbnail" fetchpriority="high" decoding="async">
+        <img src="https://uploads.scratch.mit.edu/get_image/project/1380069752_480x360.png" alt="Main game thumbnail" fetchpriority="high" decoding="async">
         <button class="scratch-link featured-play" id="main-play-button" type="button" disabled>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
             <path d="M8 5v14l11-7z"></path>
@@ -586,10 +586,10 @@
 
     function showSignedOut(message) {
       currentUser = null;
-      savedProgress = null;
+      savedProgress = { money: '0', level: 0, device: '2' };
       signedIn.hidden = true;
       authForm.hidden = false;
-      mainPlayButton.disabled = true;
+      mainPlayButton.disabled = false;
       setAccountMessage(message);
       if (iframeElement) removeGame();
     }
@@ -628,7 +628,11 @@
 
     function persistProgress(progress) {
       const valid = validateProgress(progress);
-      if (!valid || !currentUser) return;
+      if (!valid) return;
+      if (!currentUser) {
+        setSaveMessage('Guest play: progress is not saved. Sign in to save progress.');
+        return;
+      }
       pendingProgress = valid;
       setSaveMessage('Saving progress to your account…');
       clearTimeout(saveTimer);
@@ -693,18 +697,17 @@
     }
 
     function startGame() {
-      if (!currentUser || !savedProgress || iframeElement) return;
+      if (!savedProgress || iframeElement) return;
 
       gameSaveReady = false;
       saveNowButton.disabled = true;
       mainPlayButton.disabled = true;
       player.hidden = false;
       gameControls.hidden = false;
-      setSaveMessage('Loading game and account save…');
+      setSaveMessage(currentUser ? 'Loading game and account save…' : 'Loading game in guest mode…');
 
       const embedUrl = new URL(`${TURBOWARP_ORIGIN}/1380069752/embed`);
       embedUrl.searchParams.set('extension', new URL('/game-save-extension.js', window.location.origin).href);
-      embedUrl.searchParams.set('cloud_host', 'ws://localhost:1');
       embedUrl.searchParams.set('addons', 'pause');
 
       iframeElement = document.createElement('iframe');
@@ -740,8 +743,10 @@
       } else if (message.type === 'restored') {
         clearTimeout(gameLoadTimer);
         gameSaveReady = true;
-        saveNowButton.disabled = false;
-        setSaveMessage('Progress loaded. Start the game with its green-flag button; changes save automatically.');
+        saveNowButton.disabled = !currentUser;
+        setSaveMessage(currentUser
+          ? 'Progress loaded. Start the game with its green-flag button; changes save automatically.'
+          : 'Playing as a guest. Progress is not saved; sign in to save progress.');
       } else if (message.type === 'state') {
         persistProgress(message.payload);
         if (saveNowResolver) {
@@ -773,7 +778,7 @@
       const saved = await flushProgress();
       if (pendingProgress || saved === false) return;
       removeGame();
-      mainPlayButton.disabled = !currentUser || !savedProgress;
+      mainPlayButton.disabled = !savedProgress;
     }
 
     function removeGame() {
