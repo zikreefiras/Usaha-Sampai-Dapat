@@ -1,2 +1,3 @@
-window.SINCA_SUPABASE_URL = 'YOUR_SUPABASE_PROJECT_URL';
-window.SINCA_SUPABASE_ANON_KEY = 'YOUR_SUPABASE_PUBLISHABLE_OR_ANON_KEY';
+window.SINCA_SUPABASE_URL = 'https://jmicadhvackfqndkjhff.supabase.co';
+window.SINCA_SUPABASE_ANON_KEY = 'sb_publishable_8hbs2khpGD8TzaoOwq0_-g_0-v99K6M';
+
