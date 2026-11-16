@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f3f3f3">
+  <title>Game Library</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --background: #f3f3f3;
+      --surface: #ffffff;
+      --surface-raised: #f1f1f1;
+      --border: #dedede;
+      --text: #171717;
+      --muted: #696969;
+      --button-background: #171717;
+      --button-text: #ffffff;
+      --button-hover: #333333;
+      --focus-outline: #171717;
+      --shadow: rgb(0 0 0 / 10%);
+    }
+
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --background: #090909;
+      --surface: #141414;
+      --surface-raised: #1d1d1d;
+      --border: #303030;
+      --text: #f5f5f5;
+      --muted: #a1a1a1;
+      --button-background: #f5f5f5;
+      --button-text: #111111;
+      --button-hover: #dcdcdc;
+      --focus-outline: #ffffff;
+      --shadow: rgb(0 0 0 / 45%);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      padding: clamp(1rem, 4vw, 3rem);
+      display: grid;
+      place-items: start center;
+      background: var(--background);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    button {
+      min-height: 44px;
+      font: inherit;
+    }
+
+    .launcher {
+      width: min(100%, 1080px);
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--surface);
+      box-shadow: 0 24px 70px var(--shadow);
+    }
+
+    .topbar {
+      min-height: 68px;
+      padding: 0 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .theme-button {
+      padding: 0.45rem 0.7rem;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      background: var(--surface-raised);
+      color: var(--text);
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      font-size: 0.9rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .brand-mark {
+      width: 10px;
+      height: 10px;
+      border-radius: 3px;
+      background: var(--text);
+    }
+
+    .featured-game {
+      padding: clamp(1rem, 4vw, 1.75rem);
+    }
+
+    .account-panel {
+      margin: 1.25rem clamp(1rem, 4vw, 1.75rem) 0;
+      padding: 1rem 1.1rem;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface-raised);
+    }
+
+    .account-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .account-heading {
+      margin: 0;
+      font-size: 1rem;
+    }
+
+    .account-description,
+    .account-status,
+    .game-save-status {
+      margin: 0.35rem 0 0;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .auth-form {
+      margin-top: 1rem;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.75rem;
+      align-items: end;
+    }
+
+    .form-field {
+      display: grid;
+      gap: 0.35rem;
+      color: var(--text);
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .form-field input {
+      width: 100%;
+      min-height: 44px;
+      padding: 0.6rem 0.7rem;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      background: var(--surface);
+      color: var(--text);
+      font: inherit;
+      font-weight: 400;
+    }
+
+    .auth-actions {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+    }
+
+    .action-button,
+    .text-button {
+      min-height: 44px;
+      padding: 0.55rem 0.85rem;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      background: var(--surface);
+      color: var(--text);
+      font-size: 0.82rem;
+      cursor: pointer;
+    }
+
+    .action-button.primary {
+      border-color: var(--button-background);
+      background: var(--button-background);
+      color: var(--button-text);
+      font-weight: 650;
+    }
+
+    .action-button:hover:not(:disabled),
+    .text-button:hover:not(:disabled) {
+      opacity: 0.82;
+    }
+
+    .action-button:disabled,
+    .text-button:disabled,
+    .scratch-link:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .signed-in {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.85rem;
+    }
+
+    .featured-art {
+      position: relative;
+      overflow: hidden;
+      display: block;
+      min-height: 190px;
+      aspect-ratio: 16 / 9;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #090909;
+      color: #fff;
+    }
+
+    .featured-art img {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      inset: 0;
+      object-fit: cover;
+    }
+
+    .featured-art::after {
+      position: absolute;
+      inset: 35% 0 0;
+      background: linear-gradient(transparent, rgb(0 0 0 / 65%));
+      content: "";
+      pointer-events: none;
+    }
+
+    .featured-play {
+      position: absolute;
+      z-index: 1;
+      bottom: clamp(1rem, 4vw, 1.5rem);
+      left: clamp(1rem, 4vw, 1.5rem);
+    }
+
+    .featured-art:focus-within,
+    .theme-button:focus-visible,
+    .other-game-link:focus-visible,
+    .action-button:focus-visible,
+    .text-button:focus-visible {
+      outline: 3px solid var(--focus-outline);
+      outline-offset: 3px;
+    }
+
+    .featured-caption {
+      position: absolute;
+      z-index: 1;
+      right: 1rem;
+      bottom: 1.25rem;
+      color: #fff;
+      font-size: 0.8rem;
+      text-shadow: 0 1px 5px #000;
+    }
+
+    .other-games {
+      margin-top: 1.5rem;
+      padding: 1.5rem clamp(1rem, 4vw, 1.75rem) 1.75rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .section-title {
+      margin: 0 0 1rem;
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .other-game-card {
+      padding: 0.9rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface-raised);
+    }
+
+    .other-game-title {
+      margin: 0;
+      font-size: 0.9rem;
+      font-weight: 650;
+    }
+
+    .other-game-id {
+      margin: 0.25rem 0 0;
+      color: var(--muted);
+      font-size: 0.75rem;
+    }
+
+    .scratch-link {
+      min-height: 52px;
+      padding: 0.75rem 1.5rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.65rem;
+      border: 1px solid var(--button-background);
+      border-radius: 8px;
+      background: var(--button-background);
+      color: var(--button-text);
+      font-weight: 700;
+      cursor: pointer;
+      transition: background-color 150ms ease;
+      text-decoration: none;
+    }
+
+    .scratch-link:hover {
+      background: var(--button-hover);
+    }
+
+    .player {
+      width: calc(100% - clamp(2rem, 8vw, 4rem));
+      margin: 0 auto;
+      overflow: hidden;
+      aspect-ratio: 482 / 412;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #090909;
+    }
+
+    .player[hidden],
+    .game-controls[hidden],
+    [hidden] {
+      display: none !important;
+    }
+
+    .player iframe {
+      width: 100%;
+      height: 100%;
+      display: block;
+      border: 0;
+    }
+
+    .game-controls {
+      padding: 0.8rem clamp(1rem, 4vw, 1.75rem);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .other-game-link {
+      flex: 0 0 auto;
+    }
+
+    @media (max-width: 560px) {
+      body {
+        padding: 0;
+        display: block;
+      }
+
+      .launcher {
+        min-height: 100vh;
+        border: 0;
+        border-radius: 0;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .topbar {
+        min-height: 60px;
+        padding: 0 1rem;
+      }
+
+      .topbar-actions {
+        gap: 0.55rem;
+      }
+
+      .auth-form {
+        grid-template-columns: 1fr;
+      }
+
+      .auth-actions {
+        grid-column: auto;
+      }
+
+      .featured-art {
+        min-height: 150px;
+      }
+
+      .featured-caption {
+        display: none;
+      }
+
+      .other-games {
+        margin-top: 1rem;
+        padding-top: 1.25rem;
+      }
+
+      .other-game-card {
+        padding: 0.75rem;
+      }
+
+      .player {
+        width: calc(100% - 2rem);
+      }
+
+      .game-controls {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="launcher" aria-label="Game launcher">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark" aria-hidden="true"></span> Game Library</div>
+      <div class="topbar-actions">
+        <button class="theme-button" id="theme-button" type="button" aria-pressed="false">Dark mode</button>
+      </div>
+    </header>
+
+    <section class="account-panel" aria-labelledby="account-heading">
+      <div class="account-header">
+        <div>
+          <h1 class="account-heading" id="account-heading">Sign in to save progress</h1>
+          <p class="account-description">Your money, level, and device choice are saved to your website account.</p>
+        </div>
+        <div class="signed-in" id="signed-in" hidden>
+          <span>Signed in as <strong id="account-name"></strong></span>
+          <button class="text-button" id="sign-out-button" type="button">Sign out</button>
+        </div>
+      </div>
+      <form class="auth-form" id="auth-form">
+        <label class="form-field" for="email-input">
+          Email
+          <input id="email-input" name="email" type="email" autocomplete="email" maxlength="320" required>
+        </label>
+        <label class="form-field" for="password-input">
+          Password
+          <input id="password-input" name="password" type="password" autocomplete="current-password" minlength="8" maxlength="256" required>
+        </label>
+        <div class="auth-actions">
+          <button class="action-button primary" id="auth-submit" type="submit">Sign in</button>
+          <button class="text-button" id="auth-mode-button" type="button">Create an account</button>
+        </div>
+      </form>
+      <p class="account-status" id="account-status" role="status" aria-live="polite">Checking account…</p>
+    </section>
+
+    <section class="featured-game" aria-label="Main game">
+      <div class="featured-art">
+        <img src="gameThumbnail/SINCA.png" alt="Main game thumbnail" fetchpriority="high" decoding="async">
+        <button class="scratch-link featured-play" id="main-play-button" type="button" disabled>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M8 5v14l11-7z"></path>
+          </svg>
+          Play main game
+        </button>
+        <span class="featured-caption">Main game · Project #1380069752</span>
+      </div>
+    </section>
+
+    <section class="player" id="player" aria-label="Main game player" hidden></section>
+    <section class="game-controls" id="game-controls" aria-label="Game save controls" hidden>
+      <p class="game-save-status" id="game-save-status" role="status" aria-live="polite">Progress is saved to your account automatically.</p>
+      <div class="auth-actions">
+        <button class="action-button primary" id="save-now-button" type="button" disabled>Save progress now</button>
+        <button class="text-button" id="close-game-button" type="button">Close game</button>
+      </div>
+    </section>
+
+    <section class="other-games" aria-labelledby="other-games-title">
+      <h2 class="section-title" id="other-games-title">Other game</h2>
+      <article class="other-game-card">
+        <div>
+          <h3 class="other-game-title">Scratch Game</h3>
+          <p class="other-game-id">Project #1191000733 · Scratch website</p>
+        </div>
+        <a class="scratch-link other-game-link" href="https://scratch.mit.edu/projects/1191000733/" target="_blank" rel="noopener noreferrer">Play on Scratch</a>
+      </article>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script>
+    const TURBOWARP_ORIGIN = 'https://turbowarp.org';
+    const SUPABASE_SETUP_MESSAGE = 'Supabase is not configured. Add your project URL and publishable key to supabase-config.js.';
+    const supabaseClient = window.supabase && window.SINCA_SUPABASE_URL && window.SINCA_SUPABASE_ANON_KEY &&
+      !window.SINCA_SUPABASE_URL.includes('YOUR_') && !window.SINCA_SUPABASE_ANON_KEY.includes('YOUR_')
+      ? window.supabase.createClient(window.SINCA_SUPABASE_URL, window.SINCA_SUPABASE_ANON_KEY)
+      : null;
+    const themeButton = document.getElementById('theme-button');
+    const authForm = document.getElementById('auth-form');
+    const emailInput = document.getElementById('email-input');
+    const passwordInput = document.getElementById('password-input');
+    const authHeading = document.getElementById('account-heading');
+    const authSubmit = document.getElementById('auth-submit');
+    const authModeButton = document.getElementById('auth-mode-button');
+    const accountStatus = document.getElementById('account-status');
+    const signedIn = document.getElementById('signed-in');
+    const accountName = document.getElementById('account-name');
+    const signOutButton = document.getElementById('sign-out-button');
+    const mainPlayButton = document.getElementById('main-play-button');
+    const player = document.getElementById('player');
+    const gameControls = document.getElementById('game-controls');
+    const gameSaveStatus = document.getElementById('game-save-status');
+    const saveNowButton = document.getElementById('save-now-button');
+    const closeGameButton = document.getElementById('close-game-button');
+    let authMode = 'login';
+    let currentUser = null;
+    let savedProgress = null;
+    let iframeElement = null;
+    let gameSaveReady = false;
+    let pendingProgress = null;
+    let saveTimer = null;
+    let saveInProgress = false;
+    let activeSavePromise = null;
+    let gameLoadTimer = null;
+    let saveNowResolver = null;
+
+    function setAccountMessage(message) {
+      accountStatus.textContent = message;
+    }
+
+    function setSaveMessage(message) {
+      gameSaveStatus.textContent = message;
+    }
+
+    function updateAuthMode() {
+      const isLogin = authMode === 'login';
+      authHeading.textContent = isLogin ? 'Sign in to save progress' : 'Create an account to save';
+      authSubmit.textContent = isLogin ? 'Sign in' : 'Create account';
+      authModeButton.textContent = isLogin ? 'Create an account' : 'I already have an account';
+      emailInput.autocomplete = 'email';
+      passwordInput.autocomplete = isLogin ? 'current-password' : 'new-password';
+    }
+
+    function validateProgress(value) {
+      if (!value || typeof value !== 'object') return null;
+      const money = Number(value.money);
+      const level = Number(value.level);
+      const device = String(value.device);
+      if (!Number.isFinite(money) || money < 0 || !Number.isInteger(level) || level < 0) return null;
+      if (device !== '1' && device !== '2') return null;
+      return { money: String(money), level: String(level), device: device };
+    }
+
+    async function refreshProgress() {
+      const { data, error } = await supabaseClient
+        .from('game_progress')
+        .upsert({ user_id: currentUser.id }, { onConflict: 'user_id' })
+        .select('money, level, device, updated_at')
+        .single();
+      if (error) throw error;
+      savedProgress = {
+        money: String(data.money),
+        level: Number(data.level),
+        device: String(data.device),
+        updatedAt: data.updated_at
+      };
+      if (!validateProgress(savedProgress)) {
+        throw new Error('The saved progress data is invalid.');
+      }
+      mainPlayButton.disabled = false;
+      setAccountMessage('Signed in. Your saved progress is ready to load.');
+    }
+
+    function showSignedOut(message) {
+      currentUser = null;
+      savedProgress = null;
+      signedIn.hidden = true;
+      authForm.hidden = false;
+      mainPlayButton.disabled = true;
+      setAccountMessage(message);
+      if (iframeElement) removeGame();
+    }
+
+    async function showSignedIn(user) {
+      currentUser = user;
+      accountName.textContent = user.email;
+      signedIn.hidden = false;
+      authForm.hidden = true;
+      setAccountMessage('Loading your saved progress…');
+      try {
+        await refreshProgress();
+      } catch (error) {
+        mainPlayButton.disabled = true;
+        setAccountMessage(error.message);
+      }
+    }
+
+    async function checkSession() {
+      if (!supabaseClient) {
+        showSignedOut(SUPABASE_SETUP_MESSAGE);
+        return;
+      }
+      try {
+        const { data, error } = await supabaseClient.auth.getSession();
+        if (error) throw error;
+        if (data.session) {
+          await showSignedIn(data.session.user);
+        } else {
+          showSignedOut('Sign in or create an account to save progress.');
+        }
+      } catch (error) {
+        showSignedOut(`Could not check your account: ${error.message}`);
+      }
+    }
+
+    function persistProgress(progress) {
+      const valid = validateProgress(progress);
+      if (!valid || !currentUser) return;
+      pendingProgress = valid;
+      setSaveMessage('Saving progress to your account…');
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(flushProgress, 800);
+    }
+
+    async function flushProgress() {
+      if (saveInProgress) {
+        const saved = await activeSavePromise;
+        if (pendingProgress && currentUser) return flushProgress();
+        return saved;
+      }
+      if (!pendingProgress || !currentUser) return;
+      const progress = pendingProgress;
+      pendingProgress = null;
+      saveInProgress = true;
+      activeSavePromise = (async function() {
+        let succeeded = false;
+        try {
+          const { data, error } = await supabaseClient
+            .from('game_progress')
+            .upsert({
+              user_id: currentUser.id,
+              money: progress.money,
+              level: Number(progress.level),
+              device: progress.device,
+              updated_at: new Date().toISOString()
+            }, { onConflict: 'user_id' })
+            .select('money, level, device, updated_at')
+            .single();
+          if (error) throw error;
+          savedProgress = {
+            money: String(data.money),
+            level: Number(data.level),
+            device: String(data.device),
+            updatedAt: data.updated_at
+          };
+          succeeded = true;
+          setSaveMessage('Progress saved to your account.');
+        } catch (error) {
+          pendingProgress = progress;
+          setSaveMessage(`Save failed: ${error.message} Use Save progress now to retry.`);
+        } finally {
+          saveInProgress = false;
+          activeSavePromise = null;
+          if (succeeded && pendingProgress && currentUser) {
+            clearTimeout(saveTimer);
+            saveTimer = setTimeout(flushProgress, 800);
+          }
+        }
+        return succeeded;
+      })();
+      return activeSavePromise;
+    }
+
+    function postToGame(type, payload) {
+      if (!iframeElement || !iframeElement.contentWindow) return;
+      iframeElement.contentWindow.postMessage(
+        { source: 'sinca-launcher', type: type, payload: payload },
+        TURBOWARP_ORIGIN
+      );
+    }
+
+    function startGame() {
+      if (!currentUser || !savedProgress || iframeElement) return;
+
+      gameSaveReady = false;
+      saveNowButton.disabled = true;
+      mainPlayButton.disabled = true;
+      player.hidden = false;
+      gameControls.hidden = false;
+      setSaveMessage('Loading game and account save…');
+
+      const embedUrl = new URL(`${TURBOWARP_ORIGIN}/1380069752/embed`);
+      embedUrl.searchParams.set('extension', new URL('/game-save-extension.js', window.location.origin).href);
+      embedUrl.searchParams.set('cloud_host', 'ws://localhost:1');
+      embedUrl.searchParams.set('addons', 'pause');
+
+      iframeElement = document.createElement('iframe');
+      iframeElement.title = 'Main game with account progress saving';
+      iframeElement.src = embedUrl.href;
+      iframeElement.setAttribute('allowfullscreen', '');
+      iframeElement.setAttribute('scrolling', 'no');
+      iframeElement.addEventListener('error', function() {
+        clearTimeout(gameLoadTimer);
+        setSaveMessage('The game failed to load. Check your connection and try again.');
+      });
+      player.appendChild(iframeElement);
+      gameLoadTimer = setTimeout(function() {
+        if (iframeElement && !gameSaveReady) {
+          setSaveMessage('Game save bridge is taking longer than expected. Check your connection or close and retry.');
+        }
+      }, 120000);
+    }
+
+    function handleGameMessage(event) {
+      if (!iframeElement || event.source !== iframeElement.contentWindow || event.origin !== TURBOWARP_ORIGIN) return;
+      const message = event.data;
+      if (!message || message.source !== 'sinca-game-save') return;
+
+      if (message.type === 'ready') {
+        clearTimeout(gameLoadTimer);
+        postToGame('restore', savedProgress);
+        gameLoadTimer = setTimeout(function() {
+          if (iframeElement && !gameSaveReady) {
+            setSaveMessage('Could not restore saved progress. Close and retry after checking the connection.');
+          }
+        }, 15000);
+      } else if (message.type === 'restored') {
+        clearTimeout(gameLoadTimer);
+        gameSaveReady = true;
+        saveNowButton.disabled = false;
+        setSaveMessage('Progress loaded. Start the game with its green-flag button; changes save automatically.');
+      } else if (message.type === 'state') {
+        persistProgress(message.payload);
+        if (saveNowResolver) {
+          saveNowResolver();
+          saveNowResolver = null;
+        }
+      } else if (message.type === 'error') {
+        setSaveMessage(message.payload && message.payload.message ? message.payload.message : 'The game save bridge reported an error.');
+      }
+    }
+
+    function requestCurrentSave() {
+      if (!gameSaveReady) return Promise.resolve();
+      return new Promise(function(resolve) {
+        saveNowResolver = resolve;
+        postToGame('save-now');
+        setTimeout(function() {
+          if (saveNowResolver === resolve) {
+            saveNowResolver = null;
+            resolve();
+          }
+        }, 1500);
+      });
+    }
+
+    async function closeGame() {
+      await requestCurrentSave();
+      clearTimeout(saveTimer);
+      const saved = await flushProgress();
+      if (pendingProgress || saved === false) return;
+      removeGame();
+      mainPlayButton.disabled = !currentUser || !savedProgress;
+    }
+
+    function removeGame() {
+      if (iframeElement) iframeElement.remove();
+      clearTimeout(gameLoadTimer);
+      iframeElement = null;
+      gameSaveReady = false;
+      player.hidden = true;
+      gameControls.hidden = true;
+      saveNowButton.disabled = true;
+      if (saveNowResolver) {
+        saveNowResolver();
+        saveNowResolver = null;
+      }
+      if (currentUser) setSaveMessage('Progress is saved to your account automatically.');
+    }
+
+    async function signOut() {
+      try {
+        await requestCurrentSave();
+        clearTimeout(saveTimer);
+        const saved = await flushProgress();
+        if (pendingProgress || saved === false) {
+          setAccountMessage('Progress could not be saved. Retry the save before signing out.');
+          return;
+        }
+        if (currentUser) {
+          const { error } = await supabaseClient.auth.signOut();
+          if (error) throw error;
+        }
+        removeGame();
+        showSignedOut('You have signed out.');
+      } catch (error) {
+        setAccountMessage(`Could not sign out: ${error.message}`);
+      }
+    }
+
+    function toggleTheme() {
+      const isDark = document.documentElement.dataset.theme !== 'dark';
+      document.documentElement.dataset.theme = isDark ? 'dark' : 'light';
+      themeButton.textContent = isDark ? 'Light mode' : 'Dark mode';
+      themeButton.setAttribute('aria-pressed', String(isDark));
+      document.querySelector('meta[name="theme-color"]').content = isDark ? '#090909' : '#f3f3f3';
+    }
+
+    authForm.addEventListener('submit', async function(event) {
+      event.preventDefault();
+      if (!supabaseClient) {
+        setAccountMessage(SUPABASE_SETUP_MESSAGE);
+        return;
+      }
+      authSubmit.disabled = true;
+      authModeButton.disabled = true;
+      setAccountMessage(authMode === 'login' ? 'Signing in…' : 'Creating account…');
+      try {
+        const email = emailInput.value.trim();
+        const authResult = authMode === 'login'
+          ? await supabaseClient.auth.signInWithPassword({ email: email, password: passwordInput.value })
+          : await supabaseClient.auth.signUp({
+            email: email,
+            password: passwordInput.value,
+            options: { emailRedirectTo: window.location.origin }
+          });
+        if (authResult.error) throw authResult.error;
+        passwordInput.value = '';
+        if (authResult.data.session) {
+          await showSignedIn(authResult.data.user);
+        } else {
+          authMode = 'login';
+          updateAuthMode();
+          setAccountMessage('Account created. Check your email to confirm, then sign in.');
+        }
+      } catch (error) {
+        setAccountMessage(error.message);
+      } finally {
+        authSubmit.disabled = false;
+        authModeButton.disabled = false;
+      }
+    });
+
+    authModeButton.addEventListener('click', function() {
+      authMode = authMode === 'login' ? 'register' : 'login';
+      updateAuthMode();
+    });
+
+    mainPlayButton.addEventListener('click', startGame);
+    saveNowButton.addEventListener('click', async function() {
+      if (!gameSaveReady) return;
+      setSaveMessage('Saving current progress…');
+      await requestCurrentSave();
+      clearTimeout(saveTimer);
+      const saved = await flushProgress();
+      if (pendingProgress || saved === false) {
+        setSaveMessage('Save failed. Your progress is still available to retry.');
+      }
+    });
+    closeGameButton.addEventListener('click', closeGame);
+    signOutButton.addEventListener('click', signOut);
+    themeButton.addEventListener('click', toggleTheme);
+    window.addEventListener('message', handleGameMessage);
+    updateAuthMode();
+    checkSession();
+  </script>
+</body>
+</html>
